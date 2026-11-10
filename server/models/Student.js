@@ -30,10 +30,11 @@ const studentSchema = new mongoose.Schema(
     },
 
     course: {
-      type: String,
-      required: [true, "Course is required"],
-      trim: true
-    },
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Course",
+  default: null,
+},
+
 
     address: {
       type: String,
@@ -45,7 +46,9 @@ const studentSchema = new mongoose.Schema(
     timestamps: true
   }
 );
-
+// Indexes for common listing queries
+studentSchema.index({ createdAt: -1 });
+studentSchema.index({ course: 1, gender: 1 });
 const Student = mongoose.model("Student", studentSchema);
 
 module.exports = Student;

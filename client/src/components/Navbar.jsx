@@ -1,4 +1,4 @@
-
+<Link to="/students">Student Management</Link>
 import { Link } from "react-router-dom";
 
 function Navbar() {
