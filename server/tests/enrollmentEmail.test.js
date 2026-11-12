@@ -1,32 +1,32 @@
-const test = require("node:test");
-const assert = require("node:assert/strict");
 
 const createEnrollmentEmail = require("../templates/enrollmentEmail");
 
-test("Enrollment email contains student and course details", () => {
+describe("Enrollment Email Tests", () => {
+  test("should contain student and course details", () => {
     const email = createEnrollmentEmail({
-        fullName: "Nithin Test",
-        email: "test@example.com",
-        course: {
-            name: "MERN Stack Development",
-            code: "MERN101"
-        }
+      fullName: "Nithin Test",
+      email: "test@example.com",
+      course: {
+        name: "MERN Stack Development",
+        code: "MERN101",
+      },
     });
 
-    assert.equal(email.subject, "Student Enrollment Confirmation");
-    assert.match(email.text, /Nithin Test/);
-    assert.match(email.html, /MERN Stack Development/);
-});
+    expect(email.subject).toBe("Student Enrollment Confirmation");
+    expect(email.text).toContain("Nithin Test");
+    expect(email.html).toContain("MERN Stack Development");
+  });
 
-test("Enrollment email escapes HTML tags", () => {
+  test("should escape HTML tags", () => {
     const email = createEnrollmentEmail({
-        fullName: "<script>alert('test')</script>",
-        email: "test@example.com",
-        course: {
-            name: "MERN Stack Development",
-            code: "MERN101"
-        }
+      fullName: "<script>alert('test')</script>",
+      email: "test@example.com",
+      course: {
+        name: "MERN Stack Development",
+        code: "MERN101",
+      },
     });
 
-    assert.doesNotMatch(email.html, /<script>/i);
+    expect(email.html).not.toMatch(/<script>/i);
+  });
 });
