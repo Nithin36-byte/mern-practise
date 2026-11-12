@@ -1,9 +1,9 @@
+
 const mongoose = require("mongoose");
 const Course = require("../models/Course");
 const Student = require("../models/Student");
 
 // Get all students
-
 const getStudents = async (req, res, next) => {
   try {
     const {
@@ -13,9 +13,6 @@ const getStudents = async (req, res, next) => {
       sortBy = "createdAt",
       sortOrder = "desc"
     } = req.query;
-   const {
-  sendEnrollmentConfirmation,
-   } = require("../services/emailService");
 
     const page = Number(req.query.page ?? 1);
     const limit = Number(req.query.limit ?? 10);
@@ -102,7 +99,7 @@ const getStudents = async (req, res, next) => {
       ];
     }
 
-    // Filter by course (case-insensitive exact match)
+    // Filter by course
     if (course.trim()) {
       filter.course = {
         $regex: `^${escapeRegex(course.trim())}$`,
@@ -124,14 +121,14 @@ const getStudents = async (req, res, next) => {
     // Pagination
     const skip = (page - 1) * limit;
 
-    // Retrieve records and matching total count
+    // Retrieve records and total count
     const [students, total] = await Promise.all([
       Student.find(filter)
-         .populate("course", "name code")
+        .populate("course", "name code")
         .sort(sortOptions)
         .skip(skip)
         .limit(limit),
-        
+
       Student.countDocuments(filter)
     ]);
 
@@ -154,8 +151,9 @@ const getStudents = async (req, res, next) => {
 // Get student by ID
 const getStudentById = async (req, res, next) => {
   try {
-    const student = await Student.findById(req.params.id);
-     populate("course", "name code");
+    const student = await Student.findById(req.params.id)
+      .populate("course", "name code");
+
     if (!student) {
       return res.status(404).json({
         success: false,
@@ -167,15 +165,24 @@ const getStudentById = async (req, res, next) => {
       success: true,
       data: student
     });
+
   } catch (error) {
     next(error);
   }
 };
-  
+
+
 // Create student
 const createStudent = async (req, res, next) => {
   try {
-    const { fullName, email, mobile, gender, course, address } = req.body;
+    const {
+      fullName,
+      email,
+      mobile,
+      gender,
+      course,
+      address
+    } = req.body;
 
     if (!fullName || !email || !mobile || !gender || !course || !address) {
       return res.status(400).json({
@@ -183,23 +190,26 @@ const createStudent = async (req, res, next) => {
         message: "Please provide all required student fields"
       });
     }
-if (req.body.course) {
-  if (!mongoose.isValidObjectId(req.body.course)) {
-    return res.status(400).json({
-      success: false,
-      message: "Invalid course ID",
-    });
-  }
 
-  const selectedCourse = await Course.findById(req.body.course);
+    // Validate course ID
+    if (!mongoose.isValidObjectId(course)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid course ID"
+      });
+    }
 
-  if (!selectedCourse) {
-    return res.status(404).json({
-      success: false,
-      message: "Selected course not found",
-    });
-  }
-}
+    // Check whether course exists
+    const selectedCourse = await Course.findById(course);
+
+    if (!selectedCourse) {
+      return res.status(404).json({
+        success: false,
+        message: "Selected course not found"
+      });
+    }
+
+    // Create student
     const student = await Student.create({
       fullName,
       email,
@@ -214,21 +224,44 @@ if (req.body.course) {
       message: "Student created successfully",
       data: student
     });
+
   } catch (error) {
+
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "A student with this information already exists"
+      });
+    }
+
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        success: false,
+        message: "Student validation failed",
+        errors: Object.values(error.errors).map(err => err.message)
+      });
+    }
+
     next(error);
   }
 };
+
 
 // Update student
 const updateStudent = async (req, res, next) => {
   try {
     const allowedFields = [
-      "fullName", "email", "mobile",
-      "gender", "course", "address"
+      "fullName",
+      "email",
+      "mobile",
+      "gender",
+      "course",
+      "address"
     ];
 
     const updates = {};
 
+    // Allow only approved fields
     for (const field of allowedFields) {
       if (req.body[field] !== undefined) {
         updates[field] = req.body[field];
@@ -242,11 +275,33 @@ const updateStudent = async (req, res, next) => {
       });
     }
 
+    // Validate course ID if provided
+    if (updates.course !== undefined) {
+      if (!mongoose.isValidObjectId(updates.course)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid course ID"
+        });
+      }
+
+      const selectedCourse = await Course.findById(updates.course);
+
+      if (!selectedCourse) {
+        return res.status(404).json({
+          success: false,
+          message: "Selected course not found"
+        });
+      }
+    }
+
     const student = await Student.findByIdAndUpdate(
       req.params.id,
       updates,
-      { new: true, runValidators: true }
-    );
+      {
+        new: true,
+        runValidators: true
+      }
+    ).populate("course", "name code");
 
     if (!student) {
       return res.status(404).json({
@@ -260,10 +315,28 @@ const updateStudent = async (req, res, next) => {
       message: "Student updated successfully",
       data: student
     });
+
   } catch (error) {
+
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "A student with this information already exists"
+      });
+    }
+
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        success: false,
+        message: "Student validation failed",
+        errors: Object.values(error.errors).map(err => err.message)
+      });
+    }
+
     next(error);
   }
 };
+
 
 // Delete student
 const deleteStudent = async (req, res, next) => {
@@ -281,10 +354,12 @@ const deleteStudent = async (req, res, next) => {
       success: true,
       message: "Student deleted successfully"
     });
+
   } catch (error) {
     next(error);
   }
 };
+
 
 module.exports = {
   getStudents,

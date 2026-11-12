@@ -1,4 +1,4 @@
-
+import StudentForm from "../components/StudentForm";
 import { useEffect, useState } from "react";
 
 import {
@@ -445,8 +445,11 @@ function StudentManagement() {
                     <td>{student.email}</td>
                     <td>{student.mobile}</td>
                     <td>{student.gender}</td>
-                    <td>{student.course}</td>
-
+                    <td>
+    {typeof student.course === "object" && student.course !== null
+        ? student.course.name || "Unassigned"
+        : student.course || "Unassigned"}
+</td>
                     <td className="action-buttons">
 
                       <button
@@ -535,7 +538,14 @@ function StudentManagement() {
           <p>Email: {selectedStudent.email}</p>
           <p>Mobile: {selectedStudent.mobile}</p>
           <p>Gender: {selectedStudent.gender}</p>
-          <p>Course: {selectedStudent.course}</p>
+          <p>
+    Course: {
+        typeof selectedStudent.course === "object" &&
+        selectedStudent.course !== null
+            ? selectedStudent.course.name || "Unassigned"
+            : selectedStudent.course || "Unassigned"
+    }
+</p>
           <p>Address: {selectedStudent.address}</p>
 
           <button

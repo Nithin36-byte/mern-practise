@@ -1,126 +1,228 @@
 
-import React from "react";
-import { Routes, Route, Link } from "react-router-dom";
+import React, { useState } from "react";
+import { validateStudentForm } from "../utils/studentValidation";
+import { createStudent } from "../services/studentService";
 
-// Authentication pages
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Profile from "./pages/Profile";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
+const StudentForm = ({ onStudentAdded }) => {
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    mobile: "",
+    gender: "",
+    course: "",
+    address: ""
+  });
 
-// Student page
-import StudentManagement from "./pages/StudentManagement";
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("");
 
-// Task 12 pages
-import CourseManagement from "./pages/CourseManagement";
-import InstructorManagement from "./pages/InstructorManagement";
-import CourseDetails from "./pages/CourseDetails";
+  const handleChange = (e) => {
+    const { name, value } = e.target;
 
-// Protected route
-import ProtectedRoute from "./components/ProtectedRoute";
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value
+    }));
 
-// Home page
-function Home() {
+    // Clear the error for the edited field
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: ""
+    }));
+
+    setMessage("");
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    setMessage("");
+
+    // Validate form data
+    const validationErrors = validateStudentForm(formData);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    setErrors({});
+    setLoading(true);
+
+    try {
+      const studentData = {
+        ...formData,
+        email: formData.email.trim().toLowerCase(),
+        fullName: formData.fullName.trim(),
+        mobile: formData.mobile.trim(),
+        address: formData.address.trim()
+      };
+
+      const response = await createStudent(studentData);
+
+      setMessage(
+        response?.message || "Student registered successfully!"
+      );
+      setMessageType("success");
+
+      setFormData({
+        fullName: "",
+        email: "",
+        mobile: "",
+        gender: "",
+        course: "",
+        address: ""
+      });
+
+      if (onStudentAdded) {
+        onStudentAdded(response);
+      }
+
+    } catch (error) {
+      const responseData = error.response?.data;
+
+      if (responseData?.errors) {
+        const serverErrors = {};
+
+        if (Array.isArray(responseData.errors)) {
+          responseData.errors.forEach((item) => {
+            if (item.field) {
+              serverErrors[item.field] = item.message;
+            }
+          });
+        }
+
+        if (Object.keys(serverErrors).length > 0) {
+          setErrors(serverErrors);
+        }
+      }
+
+      setMessage(
+        responseData?.message ||
+        error.message ||
+        "Unable to register student. Please try again."
+      );
+
+      setMessageType("error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Student Management System</h1>
+    <div className="student-form-container">
+      <h2>Student Registration</h2>
 
-      <p>Welcome to the Student Management System.</p>
+      {message && (
+        <p
+          className={
+            messageType === "success"
+              ? "success-message"
+              : "error-message"
+          }
+        >
+          {message}
+        </p>
+      )}
 
-      <nav>
-        <Link to="/login">Login</Link>{" | "}
-        <Link to="/register">Register</Link>{" | "}
-        <Link to="/students">Students</Link>{" | "}
-        <Link to="/courses">Courses</Link>{" | "}
-        <Link to="/instructors">Instructors</Link>{" | "}
-        <Link to="/profile">Profile</Link>
-      </nav>
+      <form onSubmit={handleSubmit} noValidate>
+
+        <div className="form-group">
+          <label>Full Name</label>
+          <input
+            type="text"
+            name="fullName"
+            value={formData.fullName}
+            onChange={handleChange}
+            placeholder="Enter full name"
+          />
+          {errors.fullName && (
+            <p className="field-error">{errors.fullName}</p>
+          )}
+        </div>
+
+        <div className="form-group">
+          <label>Email</label>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="Enter email address"
+          />
+          {errors.email && (
+            <p className="field-error">{errors.email}</p>
+          )}
+        </div>
+
+        <div className="form-group">
+          <label>Mobile Number</label>
+          <input
+            type="tel"
+            name="mobile"
+            value={formData.mobile}
+            onChange={handleChange}
+            placeholder="Enter mobile number"
+          />
+          {errors.mobile && (
+            <p className="field-error">{errors.mobile}</p>
+          )}
+        </div>
+
+        <div className="form-group">
+          <label>Gender</label>
+          <select
+            name="gender"
+            value={formData.gender}
+            onChange={handleChange}
+          >
+            <option value="">Select Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+          {errors.gender && (
+            <p className="field-error">{errors.gender}</p>
+          )}
+        </div>
+
+        <div className="form-group">
+          <label>Course ID</label>
+          <input
+            type="text"
+            name="course"
+            value={formData.course}
+            onChange={handleChange}
+            placeholder="Enter MongoDB course ID"
+          />
+          {errors.course && (
+            <p className="field-error">{errors.course}</p>
+          )}
+        </div>
+
+        <div className="form-group">
+          <label>Address</label>
+          <textarea
+            name="address"
+            value={formData.address}
+            onChange={handleChange}
+            placeholder="Enter address"
+            rows="3"
+          />
+          {errors.address && (
+            <p className="field-error">{errors.address}</p>
+          )}
+        </div>
+
+        <button type="submit" disabled={loading}>
+          {loading ? "Submitting..." : "Register Student"}
+        </button>
+
+      </form>
     </div>
   );
-}
+};
 
-// Page not found
-function NotFound() {
-  return (
-    <div style={{ padding: "20px" }}>
-      <h1>404 - Page Not Found</h1>
-
-      <p>The page you are looking for does not exist.</p>
-
-      <Link to="/">Go to Home</Link>
-    </div>
-  );
-}
-
-function App() {
-  return (
-    <Routes>
-
-      {/* Home */}
-      <Route path="/" element={<Home />} />
-
-      {/* Authentication */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-
-      {/* Student Management */}
-      <Route
-        path="/students"
-        element={
-          <ProtectedRoute>
-            <StudentManagement />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* User Profile */}
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute>
-            <Profile />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Task 12 - Course Management */}
-      <Route
-        path="/courses"
-        element={
-          <ProtectedRoute>
-            <CourseManagement />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Task 12 - Instructor Management */}
-      <Route
-        path="/instructors"
-        element={
-          <ProtectedRoute>
-            <InstructorManagement />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Task 12 - Course Details */}
-      <Route
-        path="/courses/:id"
-        element={
-          <ProtectedRoute>
-            <CourseDetails />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Invalid routes */}
-      <Route path="*" element={<NotFound />} />
-
-    </Routes>
-  );
-}
-
-export default App;
+export default StudentForm;

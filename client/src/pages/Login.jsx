@@ -29,7 +29,7 @@ function Login() {
 
     try {
       await loginUser(form);
-      navigate("/students");
+      navigate("/dashboard");
     } catch (err) {
       setError(err.message);
     } finally {

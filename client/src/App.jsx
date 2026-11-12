@@ -1,3 +1,4 @@
+import Dashboard from "./pages/Dashboard";
 import StudentUploads from "./pages/StudentUploads";
 import CourseManagement from "./pages/CourseManagement";
 import InstructorManagement from "./pages/InstructorManagement";
@@ -26,6 +27,7 @@ function Home() {
       <nav>
         <Link to="/courses">Courses</Link>{" | "}
 <Link to="/instructors">Instructors</Link>
+<Link to="/dashboard">Dashboard</Link>
 <Link to="/student-uploads">Student File Management</Link>
         <Link to="/">Home</Link> |
         <Link to="/login"> Login</Link> |
@@ -61,6 +63,14 @@ function App() {
       <CourseManagement />
     </ProtectedRoute>
   }
+/>
+<Route
+    path="/dashboard"
+    element={
+        <ProtectedRoute>
+            <Dashboard />
+        </ProtectedRoute>
+    }
 />
 <Route
   path="/student-uploads"

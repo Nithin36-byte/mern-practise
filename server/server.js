@@ -1,3 +1,4 @@
+const dashboardRoutes = require("./routes/dashboardRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
 const courseRoutes = require("./routes/courseRoutes");
 const instructorRoutes = require("./routes/instructorRoutes");
@@ -29,6 +30,7 @@ app.get("/", (req, res) => {
 // Student routes
 app.use("/api/students", studentRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 // Error handling
 app.use("/api/uploads", uploadRoutes);
 app.use(notFound);
