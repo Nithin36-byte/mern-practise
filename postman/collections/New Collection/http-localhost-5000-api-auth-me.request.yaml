@@ -1,0 +1,19 @@
+$kind: http-request
+name: http://localhost:5000/api/auth/me
+description: ""
+url: http://localhost:5000/api/auth/me
+method: GET
+body:
+  type: json
+  content: "{\r
+
+    \  \"email\": \"nithinnelakurthi@gmail.com\",\r
+
+    \  \"password\": \"Final@12345678\"\r
+
+    }"
+auth:
+  type: bearer
+  credentials:
+    token: "{{json_web_token_0q3m}}"
+order: 1000
