@@ -1,76 +1,53 @@
+# MERN Stack Development - Student Management System
 
+A beginner-friendly MERN Stack project for managing student information.
 
-\# Student Management System
+## Technologies Used
 
+- MongoDB
+- Express.js
+- React.js
+- Node.js
+- Git and GitHub
 
+## Project Structure
 
-A beginner MERN Stack practice project.
+- `client/` - React frontend
+- `server/` - Express backend
+- `.gitignore` - Files ignored by Git
+- `README.md` - Project documentation
 
+## Backend Setup
 
+Open a terminal and navigate to the server folder:
 
-\## Technologies Used
-
-
-
-\- MongoDB
-
-\- Express.js
-
-\- React.js
-
-\- Node.js
-
-\- Git and GitHub
-
-
-
-\## Project Structure
-
-
-
-\- client: React frontend
-
-\- server: Express backend
-
-\- .gitignore: Files ignored by Git
-
-\- README.md: Project documentation
-
-
-
-\## Backend Setup
-
-
-
-Navigate to the server folder and run:
-
-
-
+```bash
+cd server
 npm install
-
 npm run dev
-
-
+```
 
 Backend URL: http://localhost:5000
 
+## Frontend Setup
 
+Open another terminal and navigate to the client folder:
 
-\## Frontend Setup
-
-
-
-Navigate to the client folder and run:
-
-
-
+```bash
+cd client
 npm install
-
 npm run dev
+```
 
+Open the local URL displayed in the terminal.
 
+## Project Features
 
-Open the local URL shown in CMD.
-
-
+- Student management
+- Course management
+- User authentication
+- Dashboard
+- File uploads
+- Email notifications
+- API testing
 
